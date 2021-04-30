@@ -24,18 +24,36 @@ public class FailServiceApplication {
 	private final Object monitor = new Object();
 	private int counter = 0;
 
-	@PostMapping
-	ResponseEntity<?> acceptRetries(@RequestBody Map<String, String> payload) {
+	//	@PostMapping
+	ResponseEntity<?> timeout(@RequestBody Map<String, String> payload)
+		throws Exception {
 
 		System.out.println(
-			"payload: " + payload + " , counter: " + this.counter + ", time: " + Instant.now());
+			"timeout payload: " + payload + ", time: " + Instant.now());
 
+		Thread.sleep(8_000);
+		return ResponseEntity.ok().build();
+	}
+
+	@PostMapping
+	ResponseEntity<?> ok(@RequestBody Map<String, String> payload) {
+		System.out.println(
+			"retry payload: " + payload + " , counter: " + this.counter + ", time: " + Instant.now());
+		return ResponseEntity.ok().build();
+	}
+
+	@PostMapping
+	ResponseEntity<?> acceptRetries(@RequestBody Map<String, String> payload) {
+		System.out.println(
+			"retry payload: " + payload + " , counter: " + this.counter + ", time: " + Instant.now());
 		synchronized (this.monitor) {
 			this.counter += 1;
 			if (this.counter < 5) {
+				System.out.println("ERROR!");
 				return ResponseEntity.badRequest().build();
 			}
 		}
+		System.out.println("OK!");
 		return ResponseEntity.ok().build();
 	}
 }
